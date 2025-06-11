@@ -2,6 +2,14 @@
 // só será executado depois que todo o HTML da página for carregado.
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ===================================================================
+    // CHAVE GERAL DE CONTROLE: MODO DE TESTE vs MODO AO VIVO
+    // ===================================================================
+    // Mude para 'true' para conectar com o n8n no evento.
+    // Mude para 'false' para usar os botões de teste locais.
+    const IS_LIVE_MODE = false; 
+    // ===================================================================
+
     // --- SELETORES DE ELEMENTOS E CONSTANTES GLOBAIS ---
     const grid = document.getElementById('pokedex-grid');
     const template = document.getElementById('card-template');
@@ -28,15 +36,109 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA DE INICIALIZAÇÃO DA PÁGINA ---
     function initialize() {
         setupMuteButton();
-        setupTestModeToggleButton();
-        setupCloseBannerButton();
         generateGrid();
         loadState();
         updateCounter();
-        console.log('Aplicação Pokédex iniciada com sucesso!');
+
+        // Decide qual modo de operação iniciar baseado na chave de controle.
+        if (IS_LIVE_MODE) {
+            connectWebSocket(); // Inicia a conexão com o servidor.
+        } else {
+            setupTestMode(); // Configura os botões de teste.
+        }
+        
+        console.log(`Aplicação iniciada em modo ${IS_LIVE_MODE ? 'AO VIVO' : 'DE TESTE'}.`);
     }
     
-    // --- FUNÇÕES DE CONFIGURAÇÃO INICIAL ---
+    // --- FUNÇÕES DE CONFIGURAÇÃO ---
+    function setupMuteButton() { /* ... código sem alterações ... */ }
+    function setupTestModeToggleButton() { /* ... código sem alterações ... */ }
+    function setupCloseBannerButton() { /* ... código sem alterações ... */ }
+    function generateGrid() { /* ... código sem alterações ... */ }
+
+    // NOVA FUNÇÃO: encapsula a configuração dos botões de teste.
+    function setupTestButtons() {
+        // Mostra o botão de engrenagem para exibir/ocultar os controles.
+        if (toggleTestButton) {
+            toggleTestButton.style.display = 'flex'; 
+        }
+        testNewButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
+        testDuplicateButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
+        testResetButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
+        testCompleteButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
+    }
+
+    // NOVA FUNÇÃO: encapsula toda a lógica de conexão WebSocket.
+    function connectWebSocket() {
+        // Esconde o botão de engrenagem, pois os botões de teste não serão usados.
+        if (toggleTestButton) {
+            toggleTestButton.style.display = 'none';
+        }
+
+        console.log('Iniciando conexão WebSocket para o evento...');
+        
+        const host = window.location.host;
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${protocol}://${host}`;
+
+        console.log(`Conectando ao servidor WebSocket em: ${wsUrl}`);
+        const ws = new WebSocket(wsUrl); 
+
+        let pingInterval;
+
+        ws.onopen = () => { 
+            console.log('✅ Conexão com o servidor estabelecida!');
+            pingInterval = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'ping' }));
+                }
+            }, 25000);
+        };
+        ws.onmessage = (event) => {
+            try { 
+                const data = JSON.parse(event.data);
+                if (data.type === 'pong') {
+                    console.log('Pong recebido do servidor.');
+                    return; 
+                }
+                handlePokemonAction(data); 
+            } catch (e) { 
+                console.error('Erro ao processar dados do servidor:', e);
+            }
+        };
+        ws.onclose = () => { 
+            console.warn('❌ Conexão com o servidor foi fechada.');
+            clearInterval(pingInterval);
+        };
+        ws.onerror = (error) => { 
+            console.error('🔥 Erro no WebSocket.', error);
+            clearInterval(pingInterval);
+        };
+    }
+    
+    // --- FUNÇÕES DE PERSISTÊNCIA DE DADOS (localStorage) ---
+    function saveState() { /* ... código sem alterações ... */ }
+    function loadState() { /* ... código sem alterações ... */ }
+    
+    // --- FUNÇÕES DE LÓGICA E ANIMAÇÃO ---
+    function updateCounter() { /* ... código sem alterações ... */ }
+    function playPokemonCry(pokemonName) { /* ... código sem alterações ... */ }
+    function playCompletionMusic() { /* ... código sem alterações ... */ }
+    function showHighlightAnimation(id, name, originalCard) { /* ... código sem alterações ... */ }
+    function triggerPokedexCompletionCelebration() { /* ... código sem alterações ... */ }
+    function handlePokemonAction(data) { /* ... código sem alterações ... */ }
+    function launchConfetti() { /* ... código sem alterações ... */ }
+
+    // A lista de nomes continua aqui para o modo de teste.
+    const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", /* ... etc ... */];
+
+    // --- INICIA A APLICAÇÃO ---
+    // A chamada da função initialize() dá o pontapé inicial em tudo.
+    initialize();
+
+    // ==============================================================
+    // O CORPO COMPLETO DAS FUNÇÕES QUE NÃO MUDARAM ESTÁ ABAIXO
+    // ==============================================================
 
     function setupMuteButton() {
         muteButton.classList.add('unmuted');
@@ -54,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             testControls.style.display = isVisible ? 'none' : 'block';
         });
     }
-    
+
     function setupCloseBannerButton() {
         closeBannerButton.addEventListener('click', () => {
             completionBanner.classList.add('hidden');
@@ -76,8 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(card);
         }
     }
-
-    // --- FUNÇÕES DE PERSISTÊNCIA DE DADOS (localStorage) ---
 
     function saveState() {
         const capturedIds = [];
@@ -101,17 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
             capturedCount = savedIds.length;
         }
     }
-    
-    // --- FUNÇÕES DE LÓGICA E ANIMAÇÃO ---
 
     function updateCounter() {
         capturedCountElement.textContent = capturedCount;
         totalCountElement.textContent = totalPokemon;
     }
-    
+
     function playPokemonCry(pokemonName) {
         if (isMuted) return;
-        const sanitizedName = pokemonName.toLowerCase().replace('♀', 'f').replace('♂', 'm').replace(/[. ']/g, ''); 
+        const sanitizedName = pokemonName.toLowerCase().replace('♀', 'f').replace('♂', 'm').replace(/[. ']/g, '');
         const audio = new Audio(`https://play.pokemonshowdown.com/audio/cries/${sanitizedName}.mp3`);
         audio.play().catch(error => console.warn(`Áudio para ${pokemonName} não encontrado.`));
     }
@@ -121,7 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const victoryUrl = 'https://eta.vgmtreasurechest.com/soundtracks/pokemon-game-boy-pok-mon-sound-complete-set-play-cd/vfywpihuos/1-01.%20Opening.mp3';
         completionMusic = new Audio(victoryUrl);
         completionMusic.play().catch(error => console.warn('Não foi possível tocar a música de vitória.', error));
-
         setTimeout(() => {
             if (completionMusic) {
                 completionMusic.pause();
@@ -129,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 10000);
     }
-    
+
     function showHighlightAnimation(id, name, originalCard) {
         const rect = originalCard.getBoundingClientRect();
         const highlightNode = document.createElement('div');
@@ -214,95 +311,50 @@ document.addEventListener('DOMContentLoaded', () => {
             confetti({ particleCount: 150, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
         }, 400);
     }
-
-    const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"];
-
-    // --- LÓGICA DOS BOTÕES DE TESTE ---
-    testNewButton.addEventListener('click', () => {
-        const uncapturedCards = document.querySelectorAll('.pokemon-card:not(.captured)');
-        if (uncapturedCards.length === 0) {
-            alert('Parabéns! Todos os Pokémon já foram capturados!');
-            if (!document.body.classList.contains('pokedex-complete')) triggerPokedexCompletionCelebration();
-            return;
-        }
-        const randomCard = uncapturedCards[Math.floor(Math.random() * uncapturedCards.length)];
-        const id = parseInt(randomCard.dataset.id);
-        const name = POKEMON_NAMES[id - 1];
-        handlePokemonAction({ id, name, action: 'new_capture' });
-    });
-    testDuplicateButton.addEventListener('click', () => {
-        const capturedCards = document.querySelectorAll('.pokemon-card.captured');
-        if (capturedCards.length === 0) { alert('Capture um Pokémon primeiro para testar a duplicata.'); return; }
-        const randomCapturedCard = capturedCards[Math.floor(Math.random() * capturedCards.length)];
-        const id = parseInt(randomCapturedCard.dataset.id);
-        const name = randomCapturedCard.querySelector('.pokemon-name').textContent;
-        handlePokemonAction({ id, name, action: 'duplicate_capture' });
-    });
-    testResetButton.addEventListener('click', () => {
-        if (confirm('Tem certeza que deseja zerar toda a Pokédex? O progresso será perdido.')) {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload(); 
-        }
-    });
-    testCompleteButton.addEventListener('click', () => {
-        if (confirm('Tem certeza que deseja completar a Pokédex?')) {
-            document.querySelectorAll('.pokemon-card:not(.captured)').forEach(card => {
-                const id = parseInt(card.dataset.id);
-                const name = POKEMON_NAMES[id - 1];
-                card.querySelector('.pokemon-img').src = `https://gearoid.me/pokemon/images/artwork/${id}.png`;
-                card.querySelector('.pokemon-name').textContent = name;
-                card.classList.add('captured');
-            });
-            capturedCount = 151;
-            updateCounter();
-            saveState();
-            if (!document.body.classList.contains('pokedex-complete')) triggerPokedexCompletionCelebration();
-        }
-    });
     
-    // --- LÓGICA PARA O EVENTO FINAL (agora com a conexão correta) ---
-    // Para o evento real, comente a lógica dos botões de teste acima e descomente esta seção.
-    
-    /*
-    console.log('Iniciando conexão WebSocket para o evento...');
-    
-    // CORREÇÃO: Constrói a URL do WebSocket dinamicamente a partir da URL da página.
-    const host = window.location.host;
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsUrl = `${protocol}://${host}`;
-
-    console.log(`Conectando ao servidor WebSocket em: ${wsUrl}`);
-    const ws = new WebSocket(wsUrl); 
-
-    let pingInterval;
-
-    ws.onopen = () => { 
-        console.log('✅ Conexão com o servidor estabelecida!');
-        pingInterval = setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'ping' }));
+    function setupTestButtons() {
+        const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"];
+        
+        testNewButton.addEventListener('click', () => {
+            const uncapturedCards = document.querySelectorAll('.pokemon-card:not(.captured)');
+            if (uncapturedCards.length === 0) {
+                alert('Parabéns! Todos os Pokémon já foram capturados!');
+                if (!document.body.classList.contains('pokedex-complete')) triggerPokedexCompletionCelebration();
+                return;
             }
-        }, 25000);
-    };
-    ws.onmessage = (event) => {
-        try { 
-            const data = JSON.parse(event.data);
-            if (data.type === 'pong') return; // Ignora as respostas de pong.
-            handlePokemonAction(data); 
-        } catch (e) { 
-            console.error('Erro ao processar dados do servidor:', e);
-        }
-    };
-    ws.onclose = () => { 
-        console.warn('❌ Conexão com o servidor foi fechada.');
-        clearInterval(pingInterval);
-    };
-    ws.onerror = (error) => { 
-        console.error('🔥 Erro no WebSocket.', error);
-        clearInterval(pingInterval);
-    };
-    */
-
-    // --- INICIA A APLICAÇÃO ---
-    initialize();
+            const randomCard = uncapturedCards[Math.floor(Math.random() * uncapturedCards.length)];
+            const id = parseInt(randomCard.dataset.id);
+            const name = POKEMON_NAMES[id - 1];
+            handlePokemonAction({ id, name, action: 'new_capture' });
+        });
+        testDuplicateButton.addEventListener('click', () => {
+            const capturedCards = document.querySelectorAll('.pokemon-card.captured');
+            if (capturedCards.length === 0) { alert('Capture um Pokémon primeiro para testar a duplicata.'); return; }
+            const randomCapturedCard = capturedCards[Math.floor(Math.random() * capturedCards.length)];
+            const id = parseInt(randomCapturedCard.dataset.id);
+            const name = randomCapturedCard.querySelector('.pokemon-name').textContent;
+            handlePokemonAction({ id, name, action: 'duplicate_capture' });
+        });
+        testResetButton.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja zerar toda a Pokédex? O progresso será perdido.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload(); 
+            }
+        });
+        testCompleteButton.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja completar a Pokédex?')) {
+                document.querySelectorAll('.pokemon-card:not(.captured)').forEach(card => {
+                    const id = parseInt(card.dataset.id);
+                    const name = POKEMON_NAMES[id - 1];
+                    card.querySelector('.pokemon-img').src = `https://gearoid.me/pokemon/images/artwork/${id}.png`;
+                    card.querySelector('.pokemon-name').textContent = name;
+                    card.classList.add('captured');
+                });
+                capturedCount = 151;
+                updateCounter();
+                saveState();
+                if (!document.body.classList.contains('pokedex-complete')) triggerPokedexCompletionCelebration();
+            }
+        });
+    }
 });
