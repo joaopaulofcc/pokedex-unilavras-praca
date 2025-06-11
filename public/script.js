@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    /*
+    
     // --- LÓGICA PARA O EVENTO FINAL (usar com o server.js e n8n) ---
     console.log('Iniciando conexão WebSocket para o evento...');
     const ws = new WebSocket('ws://localhost:3000'); 
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     ws.onclose = () => { console.warn('❌ Conexão fechada.'); };
     ws.onerror = (error) => { console.error('🔥 Erro no WebSocket.', error); };
-    */
+    
 
     // --- INICIA A APLICAÇÃO ---
     initialize();
