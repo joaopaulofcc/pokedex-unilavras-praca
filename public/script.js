@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================
     // Mude para 'true' para conectar com o n8n no evento.
     // Mude para 'false' para usar os botões de teste locais.
-    const IS_LIVE_MODE = false; 
+    const IS_LIVE_MODE = true; 
     // ===================================================================
 
     // --- SELETORES DE ELEMENTOS E CONSTANTES GLOBAIS ---
