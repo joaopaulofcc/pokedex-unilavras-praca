@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 completionMusic.pause();
                 completionMusic.currentTime = 0;
             }
-        }, 10000); // Para a música após 10 segundos
+        }, 10000);
     }
     
     function showHighlightAnimation(id, name, originalCard) {
@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"];
 
+    // --- LÓGICA DOS BOTÕES DE TESTE ---
     testNewButton.addEventListener('click', () => {
         const uncapturedCards = document.querySelectorAll('.pokemon-card:not(.captured)');
         if (uncapturedCards.length === 0) {
@@ -229,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = POKEMON_NAMES[id - 1];
         handlePokemonAction({ id, name, action: 'new_capture' });
     });
-
     testDuplicateButton.addEventListener('click', () => {
         const capturedCards = document.querySelectorAll('.pokemon-card.captured');
         if (capturedCards.length === 0) { alert('Capture um Pokémon primeiro para testar a duplicata.'); return; }
@@ -238,18 +238,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = randomCapturedCard.querySelector('.pokemon-name').textContent;
         handlePokemonAction({ id, name, action: 'duplicate_capture' });
     });
-
     testResetButton.addEventListener('click', () => {
         if (confirm('Tem certeza que deseja zerar toda a Pokédex? O progresso será perdido.')) {
-            console.log('Resetando a Pokédex...');
             localStorage.removeItem(STORAGE_KEY);
             location.reload(); 
         }
     });
-
     testCompleteButton.addEventListener('click', () => {
         if (confirm('Tem certeza que deseja completar a Pokédex?')) {
-            console.log('Completando a Pokédex...');
             document.querySelectorAll('.pokemon-card:not(.captured)').forEach(card => {
                 const id = parseInt(card.dataset.id);
                 const name = POKEMON_NAMES[id - 1];
@@ -264,17 +260,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // --- LÓGICA PARA O EVENTO FINAL (agora com a conexão correta) ---
+    // Para o evento real, comente a lógica dos botões de teste acima e descomente esta seção.
     
-    // --- LÓGICA PARA O EVENTO FINAL (usar com o server.js e n8n) ---
+    /*
     console.log('Iniciando conexão WebSocket para o evento...');
-    const ws = new WebSocket('ws://localhost:3000'); 
-    ws.onopen = () => { console.log('✅ Conexão estabelecida!'); };
-    ws.onmessage = (event) => {
-        try { handlePokemonAction(JSON.parse(event.data)); } catch (e) { console.error('Erro:', e); }
-    };
-    ws.onclose = () => { console.warn('❌ Conexão fechada.'); };
-    ws.onerror = (error) => { console.error('🔥 Erro no WebSocket.', error); };
     
+    // CORREÇÃO: Constrói a URL do WebSocket dinamicamente a partir da URL da página.
+    const host = window.location.host;
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${protocol}://${host}`;
+
+    console.log(`Conectando ao servidor WebSocket em: ${wsUrl}`);
+    const ws = new WebSocket(wsUrl); 
+
+    let pingInterval;
+
+    ws.onopen = () => { 
+        console.log('✅ Conexão com o servidor estabelecida!');
+        pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 25000);
+    };
+    ws.onmessage = (event) => {
+        try { 
+            const data = JSON.parse(event.data);
+            if (data.type === 'pong') return; // Ignora as respostas de pong.
+            handlePokemonAction(data); 
+        } catch (e) { 
+            console.error('Erro ao processar dados do servidor:', e);
+        }
+    };
+    ws.onclose = () => { 
+        console.warn('❌ Conexão com o servidor foi fechada.');
+        clearInterval(pingInterval);
+    };
+    ws.onerror = (error) => { 
+        console.error('🔥 Erro no WebSocket.', error);
+        clearInterval(pingInterval);
+    };
+    */
 
     // --- INICIA A APLICAÇÃO ---
     initialize();
