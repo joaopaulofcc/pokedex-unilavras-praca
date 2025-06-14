@@ -1,80 +1,138 @@
-// A função principal é envolvida por este 'listener' para garantir que o JavaScript
-// só será executado depois que todo o HTML da página for carregado.
+// ================================================
+// SCRIPT DA POKÉDEX INTERATIVA DO UNILAVRAS
+// -----------------------------------------------
+// Este script cria e gerencia a exibição dos cards
+// dos Pokémon, controla eventos como capturas, som,
+// animações, WebSocket e rolagem automática.
+// Ele é escrito em JavaScript moderno e se conecta
+// a um servidor WebSocket para receber atualizações.
+// Ideal para iniciantes entenderem como interações
+// com HTML, CSS e dados podem ser feitas.
+// ================================================
+
+// Espera o carregamento completo da página para iniciar o script
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ===================================================================
-    // CHAVE GERAL DE CONTROLE: MODO DE TESTE vs MODO AO VIVO
-    // ===================================================================
-    // Mude para 'true' para conectar com o n8n no evento.
-    // Mude para 'false' para usar os botões de teste locais.
+// Define se a aplicação está no modo ao vivo (true) ou teste (false)
     const IS_LIVE_MODE = true; 
-    // ===================================================================
 
-    // --- SELETORES DE ELEMENTOS E CONSTANTES GLOBAIS ---
+// Pega o elemento HTML onde os cards dos Pokémon serão inseridos
     const grid = document.getElementById('pokedex-grid');
+// Pega o template de card para clonarmos para cada Pokémon
     const template = document.getElementById('card-template');
+// Pega a área dos botões de teste (nova captura, reset, etc.)
     const testControls = document.querySelector('.test-controls');
+// Botão para simular a captura de um novo Pokémon (modo teste)
     const testNewButton = document.getElementById('test-new');
+// Botão para simular a captura duplicada de um Pokémon (modo teste)
     const testDuplicateButton = document.getElementById('test-duplicate');
+// Botão para apagar todo o progresso da Pokédex (modo teste)
     const testResetButton = document.getElementById('test-reset');
+// Botão para simular a Pokédex completa instantaneamente (modo teste)
     const testCompleteButton = document.getElementById('test-complete');
+// Elemento HTML onde mostramos o número de Pokémon capturados
     const capturedCountElement = document.getElementById('captured-count');
+// Elemento HTML onde mostramos o total de Pokémon existentes
     const totalCountElement = document.getElementById('total-count');
+// Botão para ativar/desativar o som
     const muteButton = document.getElementById('mute-button');
+// Botão que ativa/desativa os controles de teste
     const toggleTestButton = document.getElementById('toggle-test-mode');
+// Banner que aparece quando o jogador completa a Pokédex
     const completionBanner = document.getElementById('completion-banner');
+// Botão para fechar o banner de Pokédex completa
     const closeBannerButton = document.getElementById('close-banner-button');
 
+// Define o número total de Pokémon usados na Pokédex
     const totalPokemon = 151;
+// Chave usada para salvar o progresso no navegador
     const STORAGE_KEY = 'unilavrasPokedexState';
 
-    // --- VARIÁVEIS DE ESTADO ---
+// Guarda a quantidade de Pokémon capturados pelo jogador
     let capturedCount = 0;
+// Variável que indica se o som está desligado
     let isMuted = false;
+// Variável para controlar a música final de comemoração
     let completionMusic;
+// Variável que guarda o timer da rolagem automática
+    let autoScrollTimeout = null; // Variável para controlar o auto-scroll
 
-    // --- LÓGICA DE INICIALIZAÇÃO DA PÁGINA ---
+// Função principal que inicia toda a lógica da Pokédex
     function initialize() {
+// Inicializa o botão de som
         setupMuteButton();
+// Inicializa o botão que ativa o modo de testes
+        setupTestModeToggleButton();
+// Inicializa o botão de fechar o banner final
+        setupCloseBannerButton();
+// Gera todos os cards de Pokémon automaticamente
         generateGrid();
+// Carrega o progresso salvo no navegador (quais Pokémon já foram capturados)
         loadState();
+// Atualiza o número de capturas na tela
         updateCounter();
 
-        // Decide qual modo de operação iniciar baseado na chave de controle.
+// Se o modo for ao vivo, conecta ao servidor WebSocket
         if (IS_LIVE_MODE) {
-            connectWebSocket(); // Inicia a conexão com o servidor.
+// Função que inicia a conexão com o servidor WebSocket
+            connectWebSocket();
         } else {
-            setupTestMode(); // Configura os botões de teste.
+// Se estiver em modo teste, inicializa os botões de simulação
+            setupTestButtons(); 
         }
         
         console.log(`Aplicação iniciada em modo ${IS_LIVE_MODE ? 'AO VIVO' : 'DE TESTE'}.`);
+
+        // Inicia o auto-scroll após um breve delay quando a página carrega
+// Começa a rolagem automática da tela
+        startAutoScroll();
     }
     
-    // --- FUNÇÕES DE CONFIGURAÇÃO ---
-    function setupMuteButton() { /* ... código sem alterações ... */ }
-    function setupTestModeToggleButton() { /* ... código sem alterações ... */ }
-    function setupCloseBannerButton() { /* ... código sem alterações ... */ }
-    function generateGrid() { /* ... código sem alterações ... */ }
-
-    // NOVA FUNÇÃO: encapsula a configuração dos botões de teste.
-    function setupTestButtons() {
-        // Mostra o botão de engrenagem para exibir/ocultar os controles.
-        if (toggleTestButton) {
-            toggleTestButton.style.display = 'flex'; 
-        }
-        testNewButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
-        testDuplicateButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
-        testResetButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
-        testCompleteButton.addEventListener('click', () => { /* ... código sem alterações ... */ });
+    function setupMuteButton() {
+        muteButton.classList.add('unmuted');
+        muteButton.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteButton.classList.toggle('muted', isMuted);
+            muteButton.classList.toggle('unmuted', !isMuted);
+            console.log(`Som ${isMuted ? 'desativado' : 'ativado'}.`);
+        });
     }
 
-    // NOVA FUNÇÃO: encapsula toda a lógica de conexão WebSocket.
+    function setupTestModeToggleButton() {
+        if (toggleTestButton) {
+            toggleTestButton.addEventListener('click', () => {
+                const isVisible = testControls.style.display === 'block';
+                testControls.style.display = isVisible ? 'none' : 'block';
+            });
+        }
+    }
+
+    function setupCloseBannerButton() {
+        closeBannerButton.addEventListener('click', () => {
+            completionBanner.classList.add('hidden');
+            document.body.classList.remove('pokedex-complete');
+            if (completionMusic) {
+                completionMusic.pause();
+                completionMusic.currentTime = 0;
+            }
+        });
+    }
+
+    function generateGrid() {
+        for (let i = 1; i <= totalPokemon; i++) {
+            const clone = template.content.cloneNode(true);
+            const card = clone.querySelector('.pokemon-card');
+            card.dataset.id = i;
+            card.querySelector('.pokemon-silhouette').src = `https://gearoid.me/pokemon/images/artwork/${i}.png`;
+            card.querySelector('.pokemon-id').textContent = `#${i.toString().padStart(3, '0')}`;
+            grid.appendChild(card);
+        }
+    }
+
     function connectWebSocket() {
-        // Esconde o botão de engrenagem, pois os botões de teste não serão usados.
         if (toggleTestButton) {
             toggleTestButton.style.display = 'none';
         }
-
         console.log('Iniciando conexão WebSocket para o evento...');
         
         const host = window.location.host;
@@ -116,69 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    // --- FUNÇÕES DE PERSISTÊNCIA DE DADOS (localStorage) ---
-    function saveState() { /* ... código sem alterações ... */ }
-    function loadState() { /* ... código sem alterações ... */ }
-    
-    // --- FUNÇÕES DE LÓGICA E ANIMAÇÃO ---
-    function updateCounter() { /* ... código sem alterações ... */ }
-    function playPokemonCry(pokemonName) { /* ... código sem alterações ... */ }
-    function playCompletionMusic() { /* ... código sem alterações ... */ }
-    function showHighlightAnimation(id, name, originalCard) { /* ... código sem alterações ... */ }
-    function triggerPokedexCompletionCelebration() { /* ... código sem alterações ... */ }
-    function handlePokemonAction(data) { /* ... código sem alterações ... */ }
-    function launchConfetti() { /* ... código sem alterações ... */ }
-
-    // A lista de nomes continua aqui para o modo de teste.
-    const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", /* ... etc ... */];
-
-    // --- INICIA A APLICAÇÃO ---
-    // A chamada da função initialize() dá o pontapé inicial em tudo.
-    initialize();
-
-    // ==============================================================
-    // O CORPO COMPLETO DAS FUNÇÕES QUE NÃO MUDARAM ESTÁ ABAIXO
-    // ==============================================================
-
-    function setupMuteButton() {
-        muteButton.classList.add('unmuted');
-        muteButton.addEventListener('click', () => {
-            isMuted = !isMuted;
-            muteButton.classList.toggle('muted', isMuted);
-            muteButton.classList.toggle('unmuted', !isMuted);
-            console.log(`Som ${isMuted ? 'desativado' : 'ativado'}.`);
-        });
-    }
-
-    function setupTestModeToggleButton() {
-        toggleTestButton.addEventListener('click', () => {
-            const isVisible = testControls.style.display === 'block';
-            testControls.style.display = isVisible ? 'none' : 'block';
-        });
-    }
-
-    function setupCloseBannerButton() {
-        closeBannerButton.addEventListener('click', () => {
-            completionBanner.classList.add('hidden');
-            document.body.classList.remove('pokedex-complete');
-            if (completionMusic) {
-                completionMusic.pause();
-                completionMusic.currentTime = 0;
-            }
-        });
-    }
-
-    function generateGrid() {
-        for (let i = 1; i <= totalPokemon; i++) {
-            const clone = template.content.cloneNode(true);
-            const card = clone.querySelector('.pokemon-card');
-            card.dataset.id = i;
-            card.querySelector('.pokemon-silhouette').src = `https://gearoid.me/pokemon/images/artwork/${i}.png`;
-            card.querySelector('.pokemon-id').textContent = `#${i.toString().padStart(3, '0')}`;
-            grid.appendChild(card);
-        }
-    }
-
     function saveState() {
         const capturedIds = [];
         document.querySelectorAll('.pokemon-card.captured').forEach(card => {
@@ -199,9 +194,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             capturedCount = savedIds.length;
+            if (capturedCount === totalPokemon) {
+                document.body.classList.add('pokedex-complete');
+                completionBanner.classList.remove('hidden');
+            }
         }
     }
-
+    
     function updateCounter() {
         capturedCountElement.textContent = capturedCount;
         totalCountElement.textContent = totalPokemon;
@@ -211,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMuted) return;
         const sanitizedName = pokemonName.toLowerCase().replace('♀', 'f').replace('♂', 'm').replace(/[. ']/g, '');
         const audio = new Audio(`https://play.pokemonshowdown.com/audio/cries/${sanitizedName}.mp3`);
-        audio.play().catch(error => console.warn(`Áudio para ${pokemonName} não encontrado.`));
+        audio.play().catch(error => console.warn(`Áudio para ${pokemonName} não encontrado ou bloqueado pelo navegador.`, error));
     }
 
     function playCompletionMusic() {
@@ -226,38 +225,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 10000);
     }
-
-    function showHighlightAnimation(id, name, originalCard) {
+    
+    function showHighlightAnimation(id, name, originalCard, bannerText) {
         const rect = originalCard.getBoundingClientRect();
+        
         const highlightNode = document.createElement('div');
         highlightNode.className = 'pokemon-highlight';
-        const bannerNode = document.createElement('div');
-        bannerNode.className = 'highlight-banner';
-        bannerNode.innerHTML = `Novo Pokémon Capturado!`;
         highlightNode.innerHTML = `
             <div class="card-back">
                 <img src="https://gearoid.me/pokemon/images/artwork/${id}.png" class="pokemon-img" alt="${name}">
-                <p class="highlight-name">${name}</p>
             </div>`;
-        highlightNode.style.cssText = `width: ${rect.width}px; height: ${rect.height}px; top: ${rect.top}px; left: ${rect.left}px;`;
+
+        const bannerNode = document.createElement('div');
+        bannerNode.className = 'highlight-banner';
+        bannerNode.textContent = bannerText;
+
+        highlightNode.style.cssText = `width: ${rect.width}px; height: ${rect.height}px; top: ${rect.top}px; left: ${rect.left}px; transform: scale(1);`;
+        
         document.body.appendChild(highlightNode);
         document.body.appendChild(bannerNode);
+
         setTimeout(() => {
-            highlightNode.style.cssText += `width: 350px; height: 490px; top: calc(50% - 245px); left: calc(50% - 175px); transform: scale(1.1);`;
+            const targetX = `calc(50vw - ${rect.width / 2}px - ${rect.left}px)`;
+            const targetY = `calc(50vh - ${rect.height / 2}px - ${rect.top}px)`;
+            const scale = 350 / rect.width;
+            highlightNode.style.transform = `translate(${targetX}, ${targetY}) scale(${scale})`;
             bannerNode.style.top = '20px';
             bannerNode.style.opacity = '1';
         }, 50);
+
+        const nameNode = document.createElement('div');
+        nameNode.className = 'pokemon-name-separate';
+        nameNode.textContent = name;
+        document.body.appendChild(nameNode);
+        
         setTimeout(() => {
-            highlightNode.style.cssText += `width: ${rect.width}px; height: ${rect.height}px; top: ${rect.top}px; left: ${rect.left}px; transform: scale(1); box-shadow: none;`;
+            nameNode.style.opacity = '1';
+            nameNode.style.transform = 'translate(-50%, 0)';
+        }, 500);
+
+        setTimeout(() => {
+            highlightNode.style.transform = `translate(0, 0) scale(1)`;
+            highlightNode.style.opacity = '0';
             bannerNode.style.top = '-150px';
             bannerNode.style.opacity = '0';
-        }, 2000);
-        highlightNode.addEventListener('transitionend', () => {
-            if (highlightNode.style.transform === 'scale(1)') {
-                highlightNode.remove();
-                bannerNode.remove();
-            }
-        });
+            nameNode.style.opacity = '0';
+        }, 2500);
+
+        setTimeout(() => {
+            highlightNode.remove();
+            bannerNode.remove();
+            nameNode.remove();
+        }, 3300);
     }
 
     function triggerPokedexCompletionCelebration() {
@@ -274,31 +293,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function handlePokemonAction(data) {
         const targetCard = document.querySelector(`.pokemon-card[data-id='${data.id}']`);
         if (!targetCard) return;
+
         playPokemonCry(data.name);
-        switch (data.action) {
-            case 'new_capture':
-                if (targetCard.classList.contains('captured')) {
-                    handlePokemonAction({ ...data, action: 'duplicate_capture' });
-                    return;
+        stopAutoScroll(); // Para a rolagem automática ao capturar um pokémon
+
+        const isNewCapture = !targetCard.classList.contains('captured');
+
+        if (data.action === 'new_capture' && isNewCapture) {
+            showHighlightAnimation(data.id, data.name, targetCard, 'Novo Pokémon Capturado!');
+            
+            setTimeout(() => {
+                targetCard.querySelector('.pokemon-img').src = `https://gearoid.me/pokemon/images/artwork/${data.id}.png`;
+                targetCard.querySelector('.pokemon-name').textContent = data.name;
+                targetCard.classList.add('captured');
+                capturedCount++;
+// Atualiza o número de capturas na tela
+                updateCounter();
+                saveState();
+                if (capturedCount === totalPokemon) {
+                    triggerPokedexCompletionCelebration();
                 }
-                showHighlightAnimation(data.id, data.name, targetCard);
-                setTimeout(() => {
-                    targetCard.querySelector('.pokemon-img').src = `https://gearoid.me/pokemon/images/artwork/${data.id}.png`;
-                    targetCard.querySelector('.pokemon-name').textContent = data.name;
-                    targetCard.classList.add('captured');
-                    capturedCount++;
-                    updateCounter();
-                    saveState();
-                    if (capturedCount === totalPokemon) {
-                        triggerPokedexCompletionCelebration();
-                    }
-                }, 500);
-                break;
-            case 'duplicate_capture':
-                if (!targetCard.classList.contains('captured')) return;
-                targetCard.classList.add('glow');
-                setTimeout(() => { targetCard.classList.remove('glow'); }, 1500);
-                break;
+            }, 500);
+
+        } else {
+            showHighlightAnimation(data.id, data.name, targetCard, 'Captura Duplicada!');
         }
     }
     
@@ -312,8 +330,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400);
     }
     
+    const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"];
+
     function setupTestButtons() {
-        const POKEMON_NAMES = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"];
+        if (toggleTestButton) {
+            toggleTestButton.style.display = 'flex'; 
+        }
         
         testNewButton.addEventListener('click', () => {
             const uncapturedCards = document.querySelectorAll('.pokemon-card:not(.captured)');
@@ -351,10 +373,67 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.classList.add('captured');
                 });
                 capturedCount = 151;
+// Atualiza o número de capturas na tela
                 updateCounter();
                 saveState();
                 if (!document.body.classList.contains('pokedex-complete')) triggerPokedexCompletionCelebration();
             }
         });
     }
+
+    // --- LÓGICA DE AUTO-SCROLL ---
+
+    /**
+     * Para a rolagem automática da página.
+     */
+    function stopAutoScroll() {
+        if (autoScrollTimeout) {
+            clearTimeout(autoScrollTimeout);
+            autoScrollTimeout = null;
+            console.log('Auto-scroll interrompido pela interação do usuário.');
+        }
+    }
+
+    /**
+     * Inicia um ciclo de rolagem suave para baixo e para cima.
+     */
+    function startAutoScroll() {
+        stopAutoScroll(); // Garante que não haja ciclos duplicados
+
+        // Você pode ajustar estes valores
+        const PAUSE_AT_TOP_BOTTOM = 4000; // 4 segundos de pausa
+        const SCROLL_SPEED_FACTOR = 1.2; // Aumente para uma rolagem mais LENTA, diminua para mais RÁPIDA
+
+        function scrollLoop() {
+            const scrollHeight = document.body.scrollHeight;
+            const viewportHeight = window.innerHeight;
+            const scrollDistance = scrollHeight - viewportHeight;
+            
+            // Estima a duração da rolagem baseada na distância
+            const scrollDuration = scrollDistance * SCROLL_SPEED_FACTOR;
+
+            // Rola para o final
+            window.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+
+            // Agenda a rolagem para o topo
+            autoScrollTimeout = setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Agenda o reinício do ciclo
+                autoScrollTimeout = setTimeout(scrollLoop, scrollDuration + PAUSE_AT_TOP_BOTTOM);
+            }, scrollDuration + PAUSE_AT_TOP_BOTTOM);
+        }
+
+        console.log('Iniciando auto-scroll...');
+        autoScrollTimeout = setTimeout(scrollLoop, PAUSE_AT_TOP_BOTTOM);
+    }
+
+    // Adiciona "ouvintes" para parar o auto-scroll com qualquer interação
+    window.addEventListener('wheel', stopAutoScroll, { passive: true });
+    window.addEventListener('touchstart', stopAutoScroll, { passive: true });
+    window.addEventListener('mousedown', stopAutoScroll);
+
+
+    // --- INICIA A APLICAÇÃO ---
+    initialize();
 });

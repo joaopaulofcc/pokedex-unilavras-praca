@@ -1,252 +1,539 @@
+/*
+  Arquivo de Estilo CSS para Pokedex Interativa
+  ---------------------------------------------
+  Este arquivo define o visual da Pokédex interativa
+  usada em eventos do Unilavras. Inclui fontes, cores
+  personalizadas, estilos de cartões dos Pokémon, animações,
+  botões e banners. Os estilos foram criados pensando em
+  acessibilidade visual e responsividade para diversos dispositivos.
+*/
+
+/* Importa uma fonte externa do Google Fonts para usar no site */
+/* Esta linha importa uma fonte chamada 'Roboto' do site Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
 
+/* Define variáveis de cores reutilizáveis no CSS */
+/* Aqui começam as variáveis de cores que usamos ao longo do site */
 :root {
+/* Definindo a variável --unilavras-cyan, que tem o valor de cor #009DE0 */
     --unilavras-cyan: #009DE0;
+/* Definindo a variável --unilavras-dark-blue, que tem o valor de cor #021D34 */
     --unilavras-dark-blue: #021D34;
+/* Definindo a variável --unilavras-text, que tem o valor de cor #FFFFFF */
     --unilavras-text: #FFFFFF;
+/* Definindo a variável --card-background, que tem o valor de cor #f0f0f0 */
     --card-background: #f0f0f0;
 }
 
+/* Estilos gerais do corpo da página */
+/* Estilos para o corpo da página, o que afeta tudo que está dentro do site */
 body {
+/* Define a fonte do texto como 'Roboto', se não funcionar usa Arial ou fonte padrão */
     font-family: 'Roboto', Arial, sans-serif;
+/* Definindo a variável background-color, que tem o valor de cor var(--unilavras-dark-blue) */
     background-color: var(--unilavras-dark-blue); 
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-text) */
     color: var(--unilavras-text); 
+/* Alinha o texto ao centro horizontalmente */
     text-align: center;
+/* Remove ou ajusta a margem externa do elemento */
     margin: 0;
+/* Espaço interno entre o conteúdo e a borda do elemento */
     padding: 20px;
+/* Impede o usuário de selecionar texto com o mouse */
     user-select: none;
+/* Garante que o corpo da página tenha no mínimo a altura da tela */
     min-height: 100vh;
+/* Inclui padding e borda no tamanho total do elemento */
     box-sizing: border-box;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: background 1s ease-in-out;
+/* Impede que a página possa ser rolada na horizontal */
     overflow-x: hidden;
 }
 
+/* Estilo para o título principal (h1) */
+/* Estilos aplicados ao título principal do site (tag <h1>) */
 h1 {
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-cyan) */
     color: var(--unilavras-cyan);
+/* Adiciona uma sombra ao texto para melhorar o contraste */
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
+/* Define o tamanho da fonte (texto) */
     font-size: 2.5em;
     margin-bottom: 10px;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: all 1s ease-in-out;
 }
 
+/* Estilo do contador da Pokédex */
 #pokedex-counter {
+/* Define o tamanho da fonte (texto) */
     font-size: 1.5em;
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-text) */
     color: var(--unilavras-text);
     margin-bottom: 20px;
+/* Define o peso da fonte, onde valores maiores deixam o texto mais grosso */
     font-weight: bold;
 }
 #pokedex-counter span {
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-dark-blue) */
     color: var(--unilavras-dark-blue);
+/* Definindo a variável background-color, que tem o valor de cor var(--unilavras-cyan) */
     background-color: var(--unilavras-cyan);
+/* Espaço interno entre o conteúdo e a borda do elemento */
     padding: 2px 8px;
+/* Define uma borda ao redor do elemento */
     border-radius: 5px;
 }
 
+/* Área de botões de teste (inicialmente escondida) */
 .test-controls {
     display: none;
     margin-bottom: 20px;
 }
 .test-controls button {
+/* Espaço interno entre o conteúdo e a borda do elemento */
     padding: 10px 15px;
+/* Define o tamanho da fonte (texto) */
     font-size: 16px;
+/* Define o peso da fonte, onde valores maiores deixam o texto mais grosso */
     font-weight: bold;
+/* Altera o cursor do mouse para a mãozinha ao passar por cima do botão */
     cursor: pointer;
+/* Remove ou ajusta a margem externa do elemento */
     margin: 0 10px;
+/* Define uma borda ao redor do elemento */
     border-radius: 8px;
+/* Definindo a variável border, que tem o valor de cor 2px solid var(--unilavras-cyan) */
     border: 2px solid var(--unilavras-cyan);
+/* Define a cor de fundo do elemento */
     background-color: transparent;
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-cyan) */
     color: var(--unilavras-cyan);
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: all 0.2s ease-in-out;
 }
 .test-controls button:hover {
+/* Aplica uma transformação como rotação, escala ou movimento */
     transform: translateY(-2px);
+/* Definindo a variável background-color, que tem o valor de cor var(--unilavras-cyan) */
     background-color: var(--unilavras-cyan);
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-text) */
     color: var(--unilavras-text);
 }
+/* Define a cor de fundo do elemento */
 .test-controls button.danger { background-color: #c72c41; border-color: #c72c41; color: white; }
+/* Define a cor de fundo do elemento */
 .test-controls button.danger:hover { background-color: white; color: #c72c41; }
+/* Define a cor de fundo do elemento */
 .test-controls button.success { background-color: #2d8a64; border-color: #2d8a64; color: white; }
+/* Define a cor de fundo do elemento */
 .test-controls button.success:hover { background-color: white; color: #2d8a64; }
 
+/* Botões flutuantes nos cantos da tela */
 .corner-controls {
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
     position: fixed;
     top: 20px;
     right: 20px;
+/* Define a ordem de empilhamento. Valores maiores ficam por cima */
     z-index: 9000;
+/* Usa o sistema flexbox para alinhar itens dentro do elemento */
     display: flex;
+/* Define o espaço entre os elementos dentro do grid ou flexbox */
     gap: 10px;
 }
 .corner-controls button {
+/* Define a cor de fundo do elemento */
     background-color: rgba(2, 29, 52, 0.5);
+/* Define a cor do texto dentro do elemento */
     color: white;
+/* Define uma borda ao redor do elemento */
     border: 2px solid white;
     width: 50px;
     height: 50px;
+/* Define uma borda ao redor do elemento */
     border-radius: 50%;
+/* Define o tamanho da fonte (texto) */
     font-size: 24px;
+/* Altera o cursor do mouse para a mãozinha ao passar por cima do botão */
     cursor: pointer;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: all 0.2s ease-in-out;
+/* Usa o sistema flexbox para alinhar itens dentro do elemento */
     display: flex;
+/* Alinha os itens no eixo horizontal dentro do flexbox */
     justify-content: center;
+/* Alinha os itens no eixo vertical dentro do flexbox */
     align-items: center;
 }
 .corner-controls button:hover {
+/* Definindo a variável background-color, que tem o valor de cor var(--unilavras-cyan) */
     background-color: var(--unilavras-cyan);
+/* Aplica uma transformação como rotação, escala ou movimento */
     transform: scale(1.1);
 }
+/* Define o tamanho da fonte (texto) */
 #mute-button::before { font-size: 24px; }
 #mute-button.unmuted::before { content: '🔊'; }
 #mute-button.muted::before { content: '🔇'; }
+/* Define o tamanho da fonte (texto) */
 #toggle-test-mode { font-size: 24px; }
 
+/* Grade onde os cards de Pokémon são exibidos */
 #pokedex-grid {
     display: grid;
+/* Define o número de colunas e o tamanho de cada uma em um grid */
     grid-template-columns: repeat(17, 1fr);
+/* Define o espaço entre os elementos dentro do grid ou flexbox */
     gap: 0.5vw;
+/* Espaço interno entre o conteúdo e a borda do elemento */
     padding: 10px;
     max-width: 1800px;
+/* Remove ou ajusta a margem externa do elemento */
     margin: auto;
     height: calc(100vh - 180px);
 }
 
+/* Estilo de cada card de Pokémon */
 .pokemon-card {
+/* Define a proporção de largura/altura do elemento */
     aspect-ratio: 2.5 / 3.5;
+/* Define a perspectiva 3D para animações de rotação */
     perspective: 1000px;
+/* Define a cor de fundo do elemento */
     background-color: transparent;
+/* Altera o cursor do mouse para a mãozinha ao passar por cima do botão */
     cursor: pointer;
 }
+/* Parte interna do card que permite animações 3D */
 .card-inner {
     position: relative; width: 100%; height: 100%;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: transform 0.8s cubic-bezier(0.6, 0.04, 0.98, 0.34);
+/* Aplica uma transformação como rotação, escala ou movimento */
     transform-style: preserve-3d;
 }
+/* Parte interna do card que permite animações 3D */
+/* Aplica uma transformação como rotação, escala ou movimento */
 .pokemon-card.captured .card-inner { transform: rotateY(180deg); }
+/* Frente do card (visível inicialmente) */
+/* Verso do card (mostrado ao girar) */
 .card-front, .card-back {
+/* Posiciona o elemento de forma absoluta em relação ao seu elemento pai */
     position: absolute; width: 100%; height: 100%;
+/* Esconde a parte de trás de um elemento durante a rotação 3D */
     backface-visibility: hidden;
+/* Define uma borda ao redor do elemento */
     border-radius: 10px;
+/* Usa o sistema flexbox para alinhar itens dentro do elemento */
     display: flex; justify-content: center; align-items: center; flex-direction: column;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+/* Define uma borda ao redor do elemento */
     border: 3px solid #011321;
 }
+/* Frente do card (visível inicialmente) */
+/* Define a cor de fundo do elemento */
 .card-front { background-color: #04294a; }
-.card-back { background: var(--card-background); transform: rotateY(180deg); }
+
+/* Verso do card (mostrado ao girar) */
+.card-back { 
+/* Definindo a variável background, que tem o valor de cor var(--card-background) */
+    background: var(--card-background); 
+/* Aplica uma transformação como rotação, escala ou movimento */
+    transform: rotateY(180deg);
+/* Espaço interno entre o conteúdo e a borda do elemento */
+    padding: 8px;
+/* Inclui padding e borda no tamanho total do elemento */
+    box-sizing: border-box;
+}
+
+/* Exibe o número do Pokémon no canto do card */
 .pokemon-id {
+/* Define a cor do texto dentro do elemento */
     font-weight: bold; font-size: 1.2em; color: #556a7d;
+/* Posiciona o elemento de forma absoluta em relação ao seu elemento pai */
     position: absolute; top: 5px; left: 8px;
 }
+/* Imagem escura usada como silhueta */
 .pokemon-silhouette {
+/* Define como a imagem será ajustada dentro do espaço disponível */
     width: 90%; height: 90%; object-fit: contain; filter: brightness(0);
 }
+
+/* Imagem real do Pokémon */
 .pokemon-img {
-    width: 100%; height: 100%; border-radius: 7px; object-fit: cover;
+    width: 100%; 
+    height: 100%; 
+/* Define uma borda ao redor do elemento */
+    border-radius: 7px; 
+/* Define como a imagem será ajustada dentro do espaço disponível */
+    object-fit: contain;
 }
+/* Nome do Pokémon mostrado no rodapé do card */
 .pokemon-name {
+/* Posiciona o elemento de forma absoluta em relação ao seu elemento pai */
     position: absolute; bottom: 0; left: 0; right: 0;
+/* Remove ou ajusta a margem externa do elemento */
     margin: 0; padding: 5px;
+/* Define a cor de fundo do elemento */
     background-color: rgba(0, 0, 0, 0.6); color: white;
+/* Define o tamanho da fonte (texto) */
     font-size: 0.9em; font-weight: bold; text-transform: capitalize;
+/* Define uma borda ao redor do elemento */
     border-bottom-left-radius: 7px; border-bottom-right-radius: 7px;
+/* Adiciona uma sombra ao texto para melhorar o contraste */
     text-shadow: 1px 1px 2px black;
 }
 
+/* Card em destaque quando o Pokémon é clicado */
 .pokemon-highlight {
-    position: fixed; z-index: 9999;
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
+    position: fixed;
+/* Define a ordem de empilhamento. Valores maiores ficam por cima */
+    z-index: 9999;
+/* Aplica uma transformação como rotação, escala ou movimento */
     transform-style: preserve-3d;
-    transition: all 0.7s cubic-bezier(0.5, 0, 0.5, 1);
-    pointer-events: none; border-radius: 15px;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
+    transition: transform 0.7s cubic-bezier(0.5, 0, 0.5, 1), opacity 0.7s ease;
+    pointer-events: none;
+/* Define uma borda ao redor do elemento */
+    border-radius: 12px;
+/* Definindo a variável box-shadow, que tem o valor de cor 0 0 50px 20px var(--unilavras-cyan) */
     box-shadow: 0 0 50px 20px var(--unilavras-cyan);
+    opacity: 1;
 }
+
+/* Verso do card (mostrado ao girar) */
+/* Card em destaque quando o Pokémon é clicado */
 .pokemon-highlight .card-back {
+/* Aplica uma transformação como rotação, escala ou movimento */
     transform: rotateY(0);
+/* Definindo a variável background, que tem o valor de cor var(--card-background) */
     background: var(--card-background);
-    border-radius: 15px;
+/* Define uma borda ao redor do elemento */
+    border-radius: 12px;
+/* Definindo a variável border, que tem o valor de cor 3px solid var(--unilavras-cyan) */
     border: 3px solid var(--unilavras-cyan);
+/* Usa o sistema flexbox para alinhar itens dentro do elemento */
+    display: flex;
+    flex-direction: column;
+/* Alinha os itens no eixo horizontal dentro do flexbox */
+    justify-content: flex-start;
+/* Espaço interno entre o conteúdo e a borda do elemento */
+    padding: 0;
+    overflow: hidden;
 }
+
+/* Imagem real do Pokémon */
+/* Card em destaque quando o Pokémon é clicado */
+.pokemon-highlight .pokemon-img {
+    width: 100%;
+    flex-grow: 1;
+/* Define como a imagem será ajustada dentro do espaço disponível */
+    object-fit: contain;
+/* Espaço interno entre o conteúdo e a borda do elemento */
+    padding: 10px;
+/* Inclui padding e borda no tamanho total do elemento */
+    box-sizing: border-box;
+/* Garante que o corpo da página tenha no mínimo a altura da tela */
+    min-height: 0;
+}
+
+/* O nome dentro do card agora fica oculto, pois será mostrado em um elemento separado */
+/* Card em destaque quando o Pokémon é clicado */
 .pokemon-highlight .highlight-name {
-    position: absolute; bottom: 10px; left: 0; right: 0; margin: 0; padding: 10px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: var(--unilavras-cyan);
-    font-size: 2em; font-weight: bold; text-transform: capitalize; text-shadow: 2px 2px 4px black;
+    display: none;
 }
+
+/* Banner no topo que aparece com destaque */
 .highlight-banner {
-    position: fixed; top: -150px; left: 50%; transform: translateX(-50%); z-index: 9998;
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
+    position: fixed;
+    top: -150px;
+    left: 50%;
+/* Aplica uma transformação como rotação, escala ou movimento */
+    transform: translateX(-50%);
+/* Define a ordem de empilhamento. Valores maiores ficam por cima */
+    z-index: 9998;
+/* Definindo a variável background, que tem o valor de cor linear-gradient(45deg, var(--unilavras-cyan), #55c3ee) */
     background: linear-gradient(45deg, var(--unilavras-cyan), #55c3ee);
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-dark-blue) */
     color: var(--unilavras-dark-blue);
-    padding: 15px 40px; border-radius: 0 0 20px 20px;
+/* Espaço interno entre o conteúdo e a borda do elemento */
+    padding: 15px 40px;
+/* Define uma borda ao redor do elemento */
+    border-radius: 0 0 20px 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    font-size: 2.5em; font-weight: bold;
+/* Define o tamanho da fonte (texto) */
+    font-size: 2.5em;
+/* Define o peso da fonte, onde valores maiores deixam o texto mais grosso */
+    font-weight: bold;
+/* Adiciona uma sombra ao texto para melhorar o contraste */
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Aplica uma transição suave ao mudar a propriedade especificada */
+    transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.glow .card-inner { animation: glow-animation 1.5s ease-in-out; }
-@keyframes glow-animation {
-    50% { box-shadow: 0 0 25px 10px var(--unilavras-cyan); }
+/* --- NOVA CLASSE PARA O NOME ANIMADO SEPARADAMENTE --- */
+/* Nome do Pokémon mostrado no rodapé do card */
+/* Nome do Pokémon exibido fora do card (animado) */
+.pokemon-name-separate {
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
+    position: fixed;
+    bottom: 15%;
+    left: 50%;
+/* Aplica uma transformação como rotação, escala ou movimento */
+    transform: translate(-50%, 20px); /* Posição inicial: centralizado e um pouco para baixo */
+/* Define a cor do texto dentro do elemento */
+    color: white;
+/* Define o tamanho da fonte (texto) */
+    font-size: 4em;
+/* Define o peso da fonte, onde valores maiores deixam o texto mais grosso */
+    font-weight: 700;
+/* Adiciona uma sombra ao texto para melhorar o contraste */
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+    opacity: 0; /* Começa invisível */
+/* Aplica uma transição suave ao mudar a propriedade especificada */
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Animação suave */
+/* Define a ordem de empilhamento. Valores maiores ficam por cima */
+    z-index: 10001; /* Garante que fique na frente de tudo */
+    pointer-events: none;
+/* Aplica uma transformação como rotação, escala ou movimento */
+    text-transform: capitalize;
 }
 
+
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
 .background-shapes { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+/* Formas animadas de fundo (bolhas ou círculos) */
 .background-shapes li {
+/* Posiciona o elemento de forma absoluta em relação ao seu elemento pai */
     position: absolute; display: block; list-style: none;
     bottom: -150px;
     background: rgba(0, 157, 224, 0.2);
+/* Aplica uma animação CSS ao elemento */
     animation: float-up 25s linear infinite;
 }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; }
+/* Formas animadas de fundo (bolhas ou círculos) */
+/* Aplica uma animação CSS ao elemento */
 .background-shapes li:nth-child(10) { left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; }
 
+/* Animação que faz as formas subirem e desaparecerem */
+/* Define uma animação personalizada com etapas ao longo do tempo */
 @keyframes float-up {
+/* Define uma borda ao redor do elemento */
     0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+/* Define uma borda ao redor do elemento */
     100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; border-radius: 50%; }
 }
 
+/* Estilo especial quando a Pokédex está completa */
+/* Definindo a variável .pokedex-complete { background, que tem o valor de cor radial-gradient(circle, var(--unilavras-text) 0%, var(--unilavras-cyan) 150%); } */
 .pokedex-complete { background: radial-gradient(circle, var(--unilavras-text) 0%, var(--unilavras-cyan) 150%); }
+/* Estilo especial quando a Pokédex está completa */
+/* Definindo a variável .pokedex-complete h1 { color, que tem o valor de cor var(--unilavras-dark-blue); text-shadow */
 .pokedex-complete h1 { color: var(--unilavras-dark-blue); text-shadow: 1px 1px 2px var(--unilavras-cyan); }
+/* Frente do card (visível inicialmente) */
+/* Estilo especial quando a Pokédex está completa */
+/* Define a cor de fundo do elemento */
 .pokedex-complete .card-front { background-color: #03325a; }
 
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
 #completion-banner {
+/* Fixa o elemento em uma posição específica da tela, mesmo se rolar */
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+/* Definindo a variável background-color, que tem o valor de cor rgba(2, 29, 52, 0.95); color */
     background-color: rgba(2, 29, 52, 0.95); color: var(--unilavras-cyan);
+/* Definindo a variável padding, que tem o valor de cor 40px 60px; border-radius */
     padding: 40px 60px; border-radius: 20px; border: 5px solid var(--unilavras-cyan);
+/* Alinha o texto ao centro horizontalmente */
     z-index: 10000; text-align: center; opacity: 0;
+/* Aplica uma transição suave ao mudar a propriedade especificada */
     transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
 #completion-banner.hidden { display: none; }
 
-/* CORREÇÃO DA LOGO: Definimos apenas a altura e deixamos a largura automática. */
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
 #completion-banner .unilavras-logo {
-    height: 80px;  /* Define uma altura fixa */
-    width: auto;   /* Largura se ajusta para manter a proporção */
+    height: 80px;
+    width: auto;
     margin-bottom: 20px;
 }
 
+/* Estilo especial quando a Pokédex está completa */
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
+/* Aplica uma transformação como rotação, escala ou movimento */
 .pokedex-complete #completion-banner { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
+/* Definindo a variável #completion-banner h1 { font-size, que tem o valor de cor 4em; margin */
 #completion-banner h1 { font-size: 4em; margin: 0; color: var(--unilavras-text); }
+/* Banner de conclusão exibido quando todos os Pokémon foram capturados */
+/* Definindo a variável #completion-banner p { font-size, que tem o valor de cor 1.5em; margin */
 #completion-banner p { font-size: 1.5em; margin: 10px 0 0; color: var(--unilavras-text); }
+/* Botão para fechar o banner de conclusão */
 #close-banner-button {
+/* Definindo a variável background-color, que tem o valor de cor var(--unilavras-cyan) */
     background-color: var(--unilavras-cyan);
+/* Definindo a variável color, que tem o valor de cor var(--unilavras-dark-blue) */
     color: var(--unilavras-dark-blue);
+/* Define uma borda ao redor do elemento */
     border: none;
+/* Espaço interno entre o conteúdo e a borda do elemento */
     padding: 10px 20px;
+/* Define uma borda ao redor do elemento */
     border-radius: 8px;
+/* Define o tamanho da fonte (texto) */
     font-size: 1.2em;
+/* Altera o cursor do mouse para a mãozinha ao passar por cima do botão */
     cursor: pointer;
+/* Remove ou ajusta a margem externa do elemento */
     margin-top: 20px;
+/* Define a cor de fundo do elemento */
     transition: background-color 0.3s ease;
 }
+/* Botão para fechar o banner de conclusão */
 #close-banner-button:hover {
+/* Define a cor de fundo do elemento */
     background-color: #007ab3;
 }
+/* Parte interna do card que permite animações 3D */
+/* Aplica uma animação CSS ao elemento */
 .wave-animate .card-inner { animation: card-wave 0.8s ease-in-out; }
+/* Animação de destaque no card ao ser clicado */
+/* Define uma animação personalizada com etapas ao longo do tempo */
 @keyframes card-wave {
+/* Definindo a variável 50% { transform, que tem o valor de cor scale(1.15) rotateY(180deg); box-shadow */
     50% { transform: scale(1.15) rotateY(180deg); box-shadow: 0 0 20px var(--unilavras-cyan); }
 }
